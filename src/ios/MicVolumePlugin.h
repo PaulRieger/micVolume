@@ -9,6 +9,7 @@
 
 @interface MicVolumePlugin : CDVPlugin {
 	AVAudioRecorder *recorder;
+    double level;
 }
 
 @property (nonatomic, retain) AVAudioRecorder* recorder;

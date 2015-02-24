@@ -17,7 +17,7 @@
 {
     // Init audio with record capability
     AVAudioSession *audioSession = [AVAudioSession sharedInstance];
-    [audioSession setCategory:AVAudioSessionCategoryRecord error:nil];
+    [audioSession setCategory:AVAudioSessionCategoryPlayAndRecord error:nil];
     
     // record audio to /dev/null
     NSURL *url = [NSURL fileURLWithPath:@"/dev/null"];
@@ -29,6 +29,8 @@
                               [NSNumber numberWithInt: 2],                         AVNumberOfChannelsKey,
                               [NSNumber numberWithInt: AVAudioQualityMax],         AVEncoderAudioQualityKey,
                               nil];
+
+
     
     CDVPluginResult* result = nil;
     
@@ -50,16 +52,23 @@
     [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
 }
 
+
+
+
+
 - (void)read:(CDVInvokedUrlCommand*)command
 {
     CDVPluginResult* result = nil;
-    float level = 0;
     
     if (self.recorder) {
         [self.recorder updateMeters];
-
+		
+		/*
         float   minDecibels = -60.0f; // Or use -60dB, which I measured in a silent room.
         float   decibels    = [self.recorder averagePowerForChannel:0];
+
+
+
         
         if (decibels < minDecibels)
         {
@@ -79,6 +88,11 @@
             
             level = powf(adjAmp, 1.0f / root);
         }
+		*/
+		
+		const double ALPHA = 0.7;
+		double peakPowerForChannel = pow(10, (0.05 * [recorder averagePowerForChannel:0]));
+		level = ALPHA * peakPowerForChannel + (1.0 - ALPHA) * level;
     }
     
     
