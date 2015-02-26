@@ -135,7 +135,7 @@ void onAudioRouteChange (void* clientData, AudioSessionPropertyID inID, UInt32 d
 }
 
 
-+ (NSString*) getAudioSessionInput {
+- (NSString*) getAudioSessionInput {
     UInt32 routeSize;
     AudioSessionGetPropertySize(kAudioSessionProperty_AudioRouteDescription, &routeSize);
     CFDictionaryRef desc; // this is the dictionary to contain descriptions
@@ -154,7 +154,7 @@ void onAudioRouteChange (void* clientData, AudioSessionPropertyID inID, UInt32 d
     return [NSString stringWithFormat:@"%@", input];
 }
 
-+ (NSString*) getAudioSessionOutput {
+- (NSString*) getAudioSessionOutput {
     UInt32 routeSize;
     AudioSessionGetPropertySize(kAudioSessionProperty_AudioRouteDescription, &routeSize);
     CFDictionaryRef desc; // this is the dictionary to contain descriptions
@@ -173,7 +173,7 @@ void onAudioRouteChange (void* clientData, AudioSessionPropertyID inID, UInt32 d
     return [NSString stringWithFormat:@"%@", output];
 }
 
-+ (NSString*) getAudioSessionRoute {
+- (NSString*) getAudioSessionRoute {
     /*
      returns the current session route:
      * ReceiverAndMicrophone
