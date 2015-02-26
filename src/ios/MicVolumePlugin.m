@@ -30,9 +30,6 @@
     UInt32 doSetProperty = 1;
     AudioSessionSetProperty (kAudioSessionProperty_OverrideCategoryMixWithOthers, sizeof(doSetProperty), &doSetProperty);
     
-    // set active
-    [[AVAudioSession sharedInstance] setDelegate:self];
-    [[AVAudioSession sharedInstance] setActive: YES error: nil];
     
     // add listener for audio input changes
     AudioSessionAddPropertyListener (kAudioSessionProperty_AudioRouteChange, onAudioRouteChange, nil );
