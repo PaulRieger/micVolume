@@ -1,4 +1,4 @@
-package com.shukriadams.micVolume;
+package com.dekwilde.micVolume;
  
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaPlugin;
