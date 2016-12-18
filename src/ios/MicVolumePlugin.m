@@ -79,7 +79,7 @@
 				
 		const double ALPHA = 0.7;
 		double peakPowerForChannel = pow(10, (0.05 * [recorder averagePowerForChannel:0]));
-		level = ALPHA * peakPowerForChannel + (1.0 - ALPHA) * level;
+		level = round(20 * log10(peakPowerForChannel) + 90);
     }
     
     
