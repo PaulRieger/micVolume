@@ -1,95 +1,91 @@
 package com.dekwilde.micVolume;
- 
+
+import android.media.MediaRecorder;
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaPlugin;
-import org.json.JSONObject;
 import org.json.JSONArray;
 import org.json.JSONException;
-import android.app.Activity;
-import android.content.Intent;
+import org.json.JSONObject;
 
 // used by audio
-import android.os.Bundle;
-import android.media.AudioFormat;
-import android.media.AudioRecord;
-import android.media.MediaRecorder;
 
-public class MicVolumePlugin extends CordovaPlugin 
-{
-  @Override
-  public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
-    try 
-    {
-      if (action.equals("start")){
-        start(callbackContext);
-      } else if (action.equals("read")){
-        read(callbackContext);
-      } else if (action.equals("stop")){
-        stop(callbackContext);
-      } else {
-        callbackContext.error("Unsupported action");
-      }
+public class MicVolumePlugin extends CordovaPlugin {
+    @Override
+    public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
+        try {
+            if (action.equals("start")) {
+                start(callbackContext);
+            } else if (action.equals("read")) {
+                read(callbackContext);
+            } else if (action.equals("stop")) {
+                stop(callbackContext);
+            } else {
+                callbackContext.error("Unsupported action");
+            }
 
       /*
       JSONObject returnObj = new JSONObject();
       returnObj.put("title", "you should still be seeing this");
           callbackContext.success(returnObj); // pass return object back here
           */
-        return true;
-    } 
-    catch(Exception e) 
-    {
-        System.err.println("Exception: " + e.getMessage());
-        callbackContext.error(e.getMessage());
-        return false;
-    }    
-  }
+            return true;
+        } catch (Exception e) {
+            System.err.println("Exception: " + e.getMessage());
+            callbackContext.error(e.getMessage());
+            return false;
+        }
+    }
 
-    private short[] buffer = null;
-    private AudioRecord audioRecord = null;
-    private int bufferSize= 1024;
-    private float volume = 0;
-    private int buflen;
-    int freq = 8000;
-    int chan = AudioFormat.CHANNEL_IN_MONO;
-        int enc  = AudioFormat.ENCODING_PCM_16BIT;
-        int src  = MediaRecorder.AudioSource.MIC;
- 
+    static final private double EMA_FILTER = 0.6;
+
+    private MediaRecorder mRecorder = null;
+    private double mEMA = 0.0;
+
     private void start(CallbackContext callbackContext) {
+        if (mRecorder == null) {
+            mRecorder = new MediaRecorder();
+            mRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+            mRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
+            mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
+            mRecorder.setOutputFile("/dev/null");
+            try {
+                mRecorder.prepare();
+            } catch (java.io.IOException ioe) {
+                android.util.Log.e("[Monkey]", "IOException: " + android.util.Log.getStackTraceString(ioe));
 
-        buflen = AudioRecord.getMinBufferSize(freq, chan, enc);
-        audioRecord = new AudioRecord(src,freq,chan,enc,buflen);
- 
-        audioRecord.startRecording();
-        buffer = new short[bufferSize];
-        
+            } catch (java.lang.SecurityException e) {
+                android.util.Log.e("[Monkey]", "SecurityException: " + android.util.Log.getStackTraceString(e));
+            }
+            try {
+                mRecorder.start();
+            } catch (java.lang.SecurityException e) {
+                android.util.Log.e("[Monkey]", "SecurityException: " + android.util.Log.getStackTraceString(e));
+            }
+            mEMA = 0.0;
+        }
+
         callbackContext.success();
     }
- 
-    private void read(CallbackContext callbackContext) throws JSONException
-    {
-        buflen = AudioRecord.getMinBufferSize(freq, chan, enc);
-        audioRecord = new AudioRecord(src,freq,chan,enc,buflen);
 
-      JSONObject returnObj = new JSONObject();
-    
-        double amplitude = 0;
-        int bufferReadResult = audioRecord.read(buffer, 0, buffer.length);
-        double sumLevel = 0;
-        for (int i = 0; i < bufferReadResult; i++) {
-          sumLevel += buffer[i];
-        }
-        amplitude = Math.abs((sumLevel / bufferReadResult));
+    private void read(CallbackContext callbackContext) throws JSONException {
 
-        returnObj.put("volume", Math.sqrt(amplitude));
-       callbackContext.success(returnObj);
+        JSONObject returnObj = new JSONObject();
+        double amplitude = 0.0;
+
+        if (mRecorder != null)
+            amplitude = (mRecorder.getMaxAmplitude() / 32767.0);
+
+        returnObj.put("volume", amplitude);
+        callbackContext.success(returnObj);
     }
 
     private void stop(CallbackContext callbackContext) {
-      audioRecord.stop();
-      audioRecord.release();
-      audioRecord = null;
+        if (mRecorder != null) {
+            mRecorder.stop();
+            mRecorder.release();
+            mRecorder = null;
+        }
 
-      callbackContext.success();
-    } 
+        callbackContext.success();
+    }
 }
